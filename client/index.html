@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zaubershooter: Healing Magic</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background-color: #0a070f;
+    }
+    
+    #root {
+      width: 100vw;
+      height: 100vh;
+    }
+    
+    .loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #0a070f;
+      color: #fff;
+      z-index: 9999;
+    }
+    
+    .loading h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #b088ff;
+    }
+    
+    .loading p {
+      font-size: 1.2rem;
+      margin-top: 0;
+      color: #8a6dc9;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #8a6dc9;
+      border-radius: 50%;
+      animation: spinner 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spinner {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="loading">
+      <div class="spinner"></div>
+      <h1>Zaubershooter: Healing Magic</h1>
+      <p>Loading magical energies...</p>
+    </div>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
