@@ -26,7 +26,8 @@ const getEmoji = (mood: NPCMood): string => {
 const NPC = ({ npc, onHealed }: NPCProps) => {
   const npcRef = useRef<THREE.Mesh>(null);
   const targetPosition = useRef<THREE.Vector3>(new THREE.Vector3(npc.position[0], 0, npc.position[2]));
-  const [moodEmoji, setMoodEmoji] = useState(getEmoji(npc.mood));
+  const wasHealedRef = useRef(false);
+  const moodEmoji = getEmoji(npc.mood); // Direct calculation instead of state
   const { playSuccess } = useAudio();
   
   // Set up movement pattern
@@ -56,16 +57,20 @@ const NPC = ({ npc, onHealed }: NPCProps) => {
     };
   }, [npc.position]);
   
-  // Update mood emoji when mood changes
+  // Handle healing completion with a ref to avoid infinite updates
   useEffect(() => {
-    setMoodEmoji(getEmoji(npc.mood));
-    
-    // If NPC is healed, trigger the healed callback
-    if (npc.healingProgress >= NPC_HEALING_THRESHOLD && !npc.isHealed) {
+    // Check if NPC should be healed and hasn't been marked as healed yet
+    if (npc.healingProgress >= NPC_HEALING_THRESHOLD && !npc.isHealed && !wasHealedRef.current) {
+      wasHealedRef.current = true; // Mark as healed locally to prevent multiple callbacks
       onHealed(npc.id);
       playSuccess();
     }
-  }, [npc.mood, npc.healingProgress, npc.isHealed, npc.id, onHealed, playSuccess]);
+    
+    // Reset the ref if NPC is no longer meeting healing criteria
+    if (npc.healingProgress < NPC_HEALING_THRESHOLD || npc.isHealed) {
+      wasHealedRef.current = false;
+    }
+  }, [npc.healingProgress, npc.isHealed, npc.id, onHealed, playSuccess]);
   
   // Handle NPC movement
   useFrame((_, delta) => {

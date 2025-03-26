@@ -24,10 +24,14 @@ const GameManager = () => {
   const numPlayersRef = useRef(1); // Set to 2 for two-player mode
   const { phase, end } = useGame();
   
+  // Keep track of healed NPCs to prevent infinite loops
+  const healedNPCsRef = useRef<Set<string>>(new Set());
+  
   // Initialize the game
   useEffect(() => {
     // Reset game state
     levelCompleteRef.current = false;
+    healedNPCsRef.current.clear();
     
     // Generate NPCs
     const initialNPCs: NPCType[] = [];
@@ -53,8 +57,12 @@ const GameManager = () => {
     
     setNPCs(initialNPCs);
     console.log("Game initialized with", initialNPCs.length, "NPCs");
+  }, [level, setNPCs, phase]);
+  
+  // Check for level completion
+  useEffect(() => {
+    if (npcs.length === 0) return;
     
-    // Check if game is complete periodically
     const checkGameComplete = () => {
       const allHealed = npcs.every(npc => npc.isHealed);
       if (allHealed && !levelCompleteRef.current && npcs.length > 0) {
@@ -69,7 +77,7 @@ const GameManager = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [level, setNPCs, completeLevel, npcs]);
+  }, [npcs, completeLevel]);
   
   // Handle spell casting
   useFrame((_, delta) => {
@@ -84,7 +92,7 @@ const GameManager = () => {
     const controls = getControls();
     if (controls.cast && castCooldown.current <= 0) {
       for (let playerIndex = 0; playerIndex < numPlayersRef.current; playerIndex++) {
-        // Get player position from refs (would be better handled via refs to Player components)
+        // Get player position
         const playerPosition = PLAYER_POSITIONS[playerIndex];
         
         // Create a spell in the direction player is facing (for simplicity, always forward)
@@ -110,12 +118,6 @@ const GameManager = () => {
   // Handle spell hit on NPCs
   const handleSpellHit = (spellId: string, npcId: string, healAmount: number) => {
     healNPC(npcId, healAmount);
-    
-    // Check if NPC is fully healed
-    const npc = npcs.find(n => n.id === npcId);
-    if (npc && npc.healingProgress >= NPC_HEALING_THRESHOLD && !npc.isHealed) {
-      markNPCHealed(npcId);
-    }
   };
   
   // Handle spell expiration
@@ -125,7 +127,13 @@ const GameManager = () => {
   
   // Handle NPC fully healed
   const handleNPCHealed = (npcId: string) => {
+    // Avoid duplicate healing callbacks
+    if (healedNPCsRef.current.has(npcId)) {
+      return;
+    }
+    
     console.log(`NPC ${npcId} fully healed!`);
+    healedNPCsRef.current.add(npcId);
     markNPCHealed(npcId);
   };
   
