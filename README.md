@@ -1,1 +1,2 @@
 # MagicArcherGame
+# MiniGame
